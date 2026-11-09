@@ -1,0 +1,1404 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      id="meta-description"
+      name="description"
+      content="Карта экологических происшествий в Черноморском регионе"
+    />
+    <title>Экомонитор</title>
+    <script type="module" crossorigin src="/black-sea-eco-site/assets/index-DU2si6V_.js"></script>
+    <link rel="stylesheet" crossorigin href="/black-sea-eco-site/assets/index-C3nMpjb6.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="topbar-brand">
+          <h1 data-i18n="site.title">Экомонитор</h1>
+          <div
+            class="monitor-status"
+            aria-live="polite"
+            aria-label="Статус соединения"
+          >
+            <span
+              id="connection-dot"
+              class="status-dot status-dot--loading"
+              aria-hidden="true"
+            ></span>
+
+            <span
+              id="connection-label"
+              class="monitor-status__visually-hidden"
+            >
+              Загружаем данные…
+            </span>
+
+            <span
+              id="update-label"
+              class="monitor-status__visually-hidden"
+            >
+
+            </span>
+          </div>
+          <div
+            id="status-strip"
+            class="status-strip"
+            role="group"
+            aria-label="Показатели на сегодня"
+            data-i18n-aria-label="status.aria"
+          ></div>
+        </div>
+
+        <!-- «Моё место» (21.10) in the middle of the top bar (27.10, Zone A of the redesign): find a beach, a town or a bay. -->
+        <div class="place-search" role="search">
+          <label class="monitor-status__visually-hidden" for="place-search-input" data-i18n="place.search.label">Найти место на берегу</label>
+          <input
+            id="place-search-input"
+            class="place-search__input"
+            type="search"
+            autocomplete="off"
+            spellcheck="false"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded="false"
+            aria-controls="place-search-list"
+          />
+          <ul id="place-search-list" class="place-search__list" role="listbox" hidden></ul>
+        </div>
+        <div id="topbar-actions" class="topbar-actions">
+          <section
+            id="combined-fields-hud"
+            class="combined-fields-hud combined-fields-hud--header"
+            aria-live="polite"
+            hidden
+          >
+            <div class="combined-fields-hud__field">
+              <span
+                class="combined-fields-hud__swatch combined-fields-hud__swatch--current"
+                aria-hidden="true"
+              ></span>
+
+              <div class="combined-fields-hud__field-copy">
+                <div class="combined-fields-hud__field-title">
+                  <span data-i18n="combined.currents">Течения</span>
+                  <span
+                    id="combined-current-mode"
+                    class="combined-fields-hud__mode"
+                  >
+                    —
+                  </span>
+                </div>
+
+                <div class="combined-fields-hud__meta">
+                  <span>Copernicus Marine</span>
+                  <span aria-hidden="true">·</span>
+                  <span id="combined-current-time">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="combined-fields-hud__field">
+              <span
+                class="combined-fields-hud__swatch combined-fields-hud__swatch--wind"
+                aria-hidden="true"
+              ></span>
+
+              <div class="combined-fields-hud__field-copy">
+                <div class="combined-fields-hud__field-title">
+                  <span data-i18n="combined.wind">Ветер</span>
+                  <span
+                    id="combined-wind-mode"
+                    class="combined-fields-hud__mode"
+                  >
+                    —
+                  </span>
+                </div>
+
+                <div
+                  id="combined-wind-speed"
+                  class="combined-fields-hud__speed"
+                >
+                  ср. — м/с
+                </div>
+
+                <div class="combined-fields-hud__meta">
+                  <span>ECMWF IFS</span>
+                  <span aria-hidden="true">·</span>
+                  <span id="combined-wind-time">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="combined-fields-hud__summary">
+              <div class="combined-fields-hud__summary-head">
+                <span
+                  class="combined-fields-hud__kicker"
+                  data-i18n="combined.title"
+                >
+                  СОВМЕСТНЫЙ РЕЖИМ
+                </span>
+
+                <span
+                  id="combined-fields-state"
+                  class="combined-fields-hud__state"
+                >
+                  —
+                </span>
+              </div>
+
+              <span
+                id="combined-fields-time-delta"
+                class="combined-fields-hud__delta"
+              >
+                Δt —
+              </span>
+
+              <span
+                class="combined-fields-hud__semantics"
+                data-i18n="combined.independent"
+              >
+                Поля независимы · не суммарный вектор
+              </span>
+            </div>
+          </section>
+
+          <!-- The three groups of section buttons, behind the «Разделы» button at every width (27.10). -->
+          <div id="topbar-menu-panel" class="topbar-menu-panel">
+          <div class="topbar-group" role="group" aria-label="сейчас" data-i18n-aria-label="header.group.now">
+            <span class="topbar-group__label" data-i18n="header.group.now">сейчас</span>
+            <div class="topbar-group__buttons">
+              <button
+                id="coast-open"
+                class="case-open coast-open"
+                type="button"
+                aria-controls="coast-panel"
+                aria-expanded="false"
+                aria-label="Открыть состояние берега по местам"
+                data-i18n="coast.open"
+                data-i18n-aria-label="coast.openAria"
+              >
+                Берег
+              </button>
+
+              <button
+                id="samples-open"
+                class="case-open samples-open"
+                type="button"
+                aria-controls="samples-panel"
+                aria-expanded="false"
+                aria-label="Открыть реестр анализов проб"
+                data-i18n="samples.open"
+                data-i18n-aria-label="samples.openAria"
+              >
+                Пробы
+              </button>
+
+              <button
+                id="pictures-open"
+                class="case-open pictures-open"
+                type="button"
+                aria-controls="pictures-panel"
+                aria-expanded="false"
+                aria-label="Открыть все снимки со спутников по местам событий"
+                data-i18n="pictures.open"
+                data-i18n-aria-label="pictures.openAria"
+              >
+                Снимки
+              </button>
+            </div>
+          </div>
+
+          <!-- On the published site the group holds what the build froze (data-frozen, api/meta.json "storm" and "watch"). -->
+          <div class="topbar-group" role="group" aria-label="прогноз" data-frozen="storm watch" data-i18n-aria-label="header.group.forecast">
+            <span class="topbar-group__label" data-i18n="header.group.forecast">прогноз</span>
+            <div class="topbar-group__buttons">
+              <button
+                id="watch-open"
+                data-frozen="watch"
+                class="case-open watch-open"
+                type="button"
+                aria-controls="watch-panel"
+                aria-expanded="false"
+                aria-label="Открыть сценарии утечки в опасных точках"
+                data-i18n="watch.open"
+                data-i18n-aria-label="watch.openAria"
+              >
+                Утечка
+              </button>
+
+              <button
+                id="storm-open"
+                data-frozen="storm"
+                class="case-open storm-open"
+                type="button"
+                aria-controls="storm-panel"
+                aria-expanded="false"
+                aria-label="Открыть окна риска после шторма"
+                data-i18n="storm.open"
+                data-i18n-aria-label="storm.openAria"
+              >
+                Шторм
+              </button>
+            </div>
+          </div>
+
+          <div class="topbar-group" role="group" aria-label="разбор" data-i18n-aria-label="header.group.review">
+            <span class="topbar-group__label" data-i18n="header.group.review">разбор</span>
+            <div class="topbar-group__buttons">
+              <button
+                id="case-open"
+                class="case-open"
+                type="button"
+                aria-controls="case-panel"
+                aria-expanded="false"
+                aria-label="Открыть разбор прошедшего инцидента"
+                data-i18n="case.open"
+                data-i18n-aria-label="case.openAria"
+              >
+                Кейс
+              </button>
+
+              <button
+                id="vessel-open"
+                data-frozen="vessels"
+                class="case-open vessel-open"
+                type="button"
+                aria-controls="vessel-panel"
+                aria-expanded="false"
+                aria-label="Открыть поиск судна и его историю"
+                data-i18n="vesselHistory.open"
+                data-i18n-aria-label="vesselHistory.openAria"
+              >
+                Судно
+              </button>
+
+              <button
+                id="chronology-open"
+                class="case-open chronology-button"
+                type="button"
+                aria-controls="chronology-panel"
+                aria-expanded="false"
+                aria-label="Открыть хронологию катастроф и разливов"
+                data-i18n="chronology.open"
+                data-i18n-aria-label="chronology.openAria"
+              >
+                Хронология
+              </button>
+            </div>
+          </div>
+
+
+          </div>
+
+          <!-- Zone A (27.10): «События» opens the left card; the sections are in the «Разделы» menu at every width. -->
+          <button
+            id="events-open"
+            class="case-open events-open"
+            type="button"
+            aria-controls="filter-panel"
+            aria-expanded="false"
+            data-i18n="header.events"
+          >
+            События
+          </button>
+
+          <button
+            id="topbar-menu"
+            class="case-open topbar-menu"
+            type="button"
+            aria-controls="topbar-menu-panel"
+            aria-expanded="false"
+            aria-label="Открыть меню разделов"
+            data-i18n="header.menu"
+            data-i18n-aria-label="header.menuAria"
+          >
+            Разделы
+          </button>
+
+          <div
+            id="language-switch"
+            class="language-switch"
+            role="group"
+            aria-label="Язык интерфейса"
+            data-i18n-aria-label="language.label"
+          >
+            <button
+              class="language-switch__button"
+              type="button"
+              data-language="ru"
+              aria-pressed="true"
+              title="Русский"
+            >
+              RU
+            </button>
+            <button
+              class="language-switch__button"
+              type="button"
+              data-language="en"
+              aria-pressed="false"
+              title="English"
+            >
+              EN
+            </button>
+          </div>
+
+          <button
+            id="faq-open"
+            class="case-open faq-open"
+            type="button"
+            aria-controls="faq-panel"
+            aria-expanded="false"
+            aria-label="Открыть вопросы и ответы"
+            data-i18n="faq.open"
+            data-i18n-aria-label="faq.openAria"
+          >
+            ?
+          </button>
+
+
+        </div>
+      </header>
+
+      <main class="map-shell">
+        <div
+          id="map"
+          aria-label="Карта экологических происшествий Черноморского региона"
+          data-i18n-aria-label="map.aria"
+        ></div>
+
+
+        <aside
+          id="filter-panel"
+          class="filter-panel"
+          aria-label="Текущие события, слои и фильтры"
+          data-i18n-aria-label="panel.aria"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="panelTitle.now">Текущие события</span>
+            <button id="events-close" class="event-panel__close" type="button" aria-label="Закрыть" data-i18n-aria-label="events.close">×</button>
+          </div>
+          <div id="now-card" class="now-card" aria-live="polite"></div>
+
+          <!-- On the published site a simplified run in the browser on the frozen grids (browserDrift.js, 22.10). -->
+          <details id="drift-details" class="panel-details" data-frozen="currents">
+            <summary class="panel-details__summary" data-i18n="panelDetails.drift">Прогноз дрейфа от точки</summary>
+            <div class="drift-control">
+              <div class="drift-control__title" data-i18n="drift.title">
+                ПРОГНОЗ ДРЕЙФА
+              </div>
+
+              <div id="drift-status" class="filter-note drift-control__status" aria-live="polite">
+                Выберите точку на карте для прогноза переноса загрязнения.
+              </div>
+
+              <div
+                id="drift-long-task"
+                class="long-task long-task--drift"
+                aria-live="polite"
+                hidden
+              >
+                <div class="long-task__head">
+                  <span class="long-task__spinner" aria-hidden="true"></span>
+                  <span class="long-task__title" data-i18n="drift.waitTitle">
+                    Рассчитываем прогноз OpenDrift
+                  </span>
+                  <span id="drift-long-task-elapsed" class="long-task__elapsed">0:00</span>
+                </div>
+                <div class="long-task__track" aria-hidden="true">
+                  <span class="long-task__bar"></span>
+                </div>
+                <div id="drift-long-task-message" class="long-task__message">
+                  Расчёт обычно занимает 1-3 минуты. Картой можно продолжать пользоваться.
+                </div>
+              </div>
+
+              <div class="drift-control__buttons">
+                <button id="drift-pick-point" class="drift-button" type="button" data-i18n="drift.pickPoint">
+                  Выбрать точку
+                </button>
+                <button id="drift-clear" class="drift-button drift-button--secondary" type="button" data-i18n="drift.clear">
+                  Очистить
+                </button>
+              </div>
+
+              <div id="drift-coordinate" class="drift-coordinate">—</div>
+
+              <div id="drift-oil-budget" class="drift-oil-budget" hidden></div>
+
+              <div class="current-size-control__header drift-control__subhead" data-i18n="drift.forcing">
+                Физическое воздействие
+              </div>
+
+              <div class="current-size-control__header drift-control__subhead" data-i18n="drift.product">
+                Продукт
+              </div>
+
+              <select id="drift-product" class="drift-select" data-i18n-aria-label="drift.productAria" aria-label="Продукт для прогноза переноса">
+                <option value="tracer" data-i18n="drift.productTracer">Условная частица (без свойств нефти)</option>
+                <option value="mazut" data-i18n="drift.productMazut">Мазут</option>
+                <option value="crude" data-i18n="drift.productCrude">Нефть (Urals)</option>
+                <option value="kerosene" data-i18n="drift.productKerosene">Керосин</option>
+                <option value="diesel" data-i18n="drift.productDiesel">Дизельное топливо</option>
+                <option value="gasoline" data-i18n="drift.productGasoline">Бензин</option>
+              </select>
+
+              <div id="drift-volume-row" class="drift-volume-row" hidden>
+                <label for="drift-volume" data-i18n="drift.volume">Объем разлива, м³</label>
+                <input id="drift-volume" class="drift-number" type="number" min="1" max="100000" step="10" value="100" />
+              </div>
+
+              <div id="drift-forcing-block">
+              <div
+                class="drift-horizon-grid drift-forcing-grid"
+                role="radiogroup"
+                aria-label="Режим внешнего воздействия прогноза дрейфа"
+                data-i18n-aria-label="drift.forcingAria"
+              >
+                <label>
+                  <input
+                    type="radio"
+                    name="drift-forcing-mode"
+                    value="current_only"
+                    checked
+                  />
+                  <span data-i18n="drift.forcingCurrentOnly">
+                    Только течения
+                  </span>
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="drift-forcing-mode"
+                    value="currents_plus_wind"
+                  />
+                  <span data-i18n="drift.forcingCurrentsWind">
+                    Течения + ветер
+                  </span>
+                </label>
+              </div>
+
+              <div
+                id="drift-forcing-details"
+                class="filter-note drift-forcing-details"
+                aria-live="polite"
+              >
+                Copernicus Marine · поверхностные течения · windage 0%
+              </div>
+              </div>
+
+              <div class="current-size-control__header drift-control__subhead" data-i18n="drift.horizon">
+                Горизонт прогноза
+              </div>
+
+              <div class="drift-horizon-grid" role="radiogroup" aria-label="Горизонт прогноза дрейфа" data-i18n-aria-label="drift.horizonAria">
+                <label><input type="radio" name="drift-horizon" value="6" /><span data-i18n="drift.hours6">6 ч</span></label>
+                <label><input type="radio" name="drift-horizon" value="12" /><span data-i18n="drift.hours12">12 ч</span></label>
+                <label><input type="radio" name="drift-horizon" value="24" checked /><span data-i18n="drift.hours24">24 ч</span></label>
+                <label><input type="radio" name="drift-horizon" value="48" /><span data-i18n="drift.hours48">48 ч</span></label>
+                <label><input type="radio" name="drift-horizon" value="72" /><span data-i18n="drift.hours72">72 ч</span></label>
+              </div>
+
+              <div class="current-size-control drift-particle-control">
+                <div class="current-size-control__header">
+                  <span data-i18n="drift.particles">Частицы модели</span>
+                  <output id="drift-particles-value" class="current-size-control__value" for="drift-particles">300</output>
+                </div>
+                <input id="drift-particles" class="current-size-control__slider" type="range" min="100" max="1000" step="100" value="300" data-i18n-aria-label="drift.particlesAria" aria-label="Количество частиц прогноза дрейфа" />
+              </div>
+
+              <button id="drift-run" class="drift-run-button" type="button" disabled data-i18n="drift.run">
+                Рассчитать прогноз
+              </button>
+
+              <div
+                id="drift-scope-note"
+                class="filter-note drift-scope-note"
+                data-i18n="drift.scopeCurrentOnly"
+              >
+                Условная частица на поверхности: её несут только течения. Ветер, волновой снос и выветривание нефти не учитываются.
+              </div>
+            </div>
+
+          </details>
+
+          <details id="layers-details" class="panel-details">
+            <summary class="panel-details__summary" data-i18n="panelDetails.layers">Слои и настройки</summary>
+          <!-- On the published site from the grid the build froze (scripts/freeze_forcing.py, api/meta.json "currents"). -->
+          <div class="filter-section" data-frozen="currents">
+            <div class="filter-section__title" data-i18n="ocean.layers">
+              ОКЕАН
+            </div>
+
+            <label class="filter-check filter-check--layer">
+              <input
+                id="currents-layer-toggle"
+                type="checkbox"
+                aria-describedby="currents-source"
+              />
+              <span class="current-layer-symbol" aria-hidden="true">↑</span>
+              <span data-i18n="ocean.currents">
+                Поверхностные течения
+              </span>
+              <!-- 27.10: the source behind an (i), not in the name of the layer. -->
+              <span class="source-info" aria-hidden="true" data-i18n-title="ocean.sourceInfo">i</span>
+            </label>
+            <span id="currents-source" class="monitor-status__visually-hidden" data-i18n="ocean.sourceInfo"></span>
+
+            <div
+              id="currents-layer-note"
+              class="filter-note ocean-layer-note"
+              aria-live="polite"
+            >
+              Copernicus Marine · почасовая модель
+            </div>
+
+            <div
+              id="currents-long-task"
+              class="long-task long-task--currents"
+              aria-live="polite"
+              hidden
+            >
+              <div class="long-task__head">
+                <span class="long-task__spinner" aria-hidden="true"></span>
+                <span class="long-task__title" data-i18n="ocean.waitTitle">
+                  Загружаем поле течений
+                </span>
+                <span id="currents-long-task-elapsed" class="long-task__elapsed">0:00</span>
+              </div>
+              <div class="long-task__track" aria-hidden="true">
+                <span class="long-task__bar"></span>
+              </div>
+              <div id="currents-long-task-message" class="long-task__message">
+                Copernicus может отвечать 30–120 секунд. Картой можно продолжать пользоваться.
+              </div>
+            </div>
+
+            <div class="current-size-control">
+              <div class="current-size-control__header">
+                <span data-i18n="ocean.arrowSize">
+                  Размер стрелок
+                </span>
+                <output
+                  id="currents-arrow-size-value"
+                  class="current-size-control__value"
+                  for="currents-arrow-size"
+                >
+                  100%
+                </output>
+              </div>
+
+              <input
+                id="currents-arrow-size"
+                class="current-size-control__slider"
+                type="range"
+                min="60"
+                max="200"
+                step="10"
+                value="100"
+                data-i18n-aria-label="ocean.arrowSizeAria"
+                aria-label="Размер стрелок течений"
+              />
+            </div>
+
+            <div class="ocean-display-control">
+              <div
+                class="current-size-control__header"
+                data-i18n="ocean.displayMode"
+              >
+                Отображение
+              </div>
+
+              <div
+                class="ocean-mode-grid"
+                role="radiogroup"
+                aria-label="Режим отображения течений"
+                data-i18n-aria-label="ocean.displayModeAria"
+              >
+                <label>
+                  <input
+                    type="radio"
+                    name="current-display-mode"
+                    value="arrows"
+                    checked
+                  />
+                  <span data-i18n="ocean.modeArrows">Стрелки</span>
+                </label>
+
+                <label>
+                  <input
+                    type="radio"
+                    name="current-display-mode"
+                    value="particles"
+                  />
+                  <span data-i18n="ocean.modeParticles">Частицы</span>
+                </label>
+
+                <label>
+                  <input
+                    type="radio"
+                    name="current-display-mode"
+                    value="both"
+                  />
+                  <span data-i18n="ocean.modeBoth">Стрелки + частицы</span>
+                </label>
+              </div>
+            </div>
+
+            <div
+              id="particle-controls"
+              class="particle-controls"
+            >
+              <div class="current-size-control">
+                <div class="current-size-control__header">
+                  <span data-i18n="ocean.particleCount">
+                    Количество частиц
+                  </span>
+                  <output
+                    id="particle-count-value"
+                    class="current-size-control__value"
+                    for="particle-count"
+                  >
+                    1800
+                  </output>
+                </div>
+
+                <input
+                  id="particle-count"
+                  class="current-size-control__slider"
+                  type="range"
+                  min="600"
+                  max="3000"
+                  step="100"
+                  value="1800"
+                  data-i18n-aria-label="ocean.particleCountAria"
+                  aria-label="Количество частиц течений"
+                />
+              </div>
+
+              <div class="current-size-control">
+                <div class="current-size-control__header">
+                  <span data-i18n="ocean.particleSpeed">
+                    Скорость анимации
+                  </span>
+                  <output
+                    id="particle-speed-value"
+                    class="current-size-control__value"
+                    for="particle-speed"
+                  >
+                    100%
+                  </output>
+                </div>
+
+                <input
+                  id="particle-speed"
+                  class="current-size-control__slider"
+                  type="range"
+                  min="50"
+                  max="200"
+                  step="10"
+                  value="100"
+                  data-i18n-aria-label="ocean.particleSpeedAria"
+                  aria-label="Скорость анимации течений"
+                />
+              </div>
+
+              <div class="current-size-control">
+                <div class="current-size-control__header">
+                  <span data-i18n="ocean.particleTrail">
+                    Длина следа
+                  </span>
+                  <output
+                    id="particle-trail-value"
+                    class="current-size-control__value"
+                    for="particle-trail"
+                  >
+                    70%
+                  </output>
+                </div>
+
+                <input
+                  id="particle-trail"
+                  class="current-size-control__slider"
+                  type="range"
+                  min="10"
+                  max="100"
+                  step="10"
+                  value="70"
+                  data-i18n-aria-label="ocean.particleTrailAria"
+                  aria-label="Длина следа частиц течений"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-section weather-wind-section" data-frozen="wind">
+            <div class="filter-section__title" data-i18n="weather.layers">
+              ВЕТЕР
+            </div>
+
+            <label class="filter-check filter-check--layer">
+              <input
+                id="wind-layer-toggle"
+                type="checkbox"
+                aria-describedby="wind-source"
+              />
+              <span class="wind-layer-symbol" aria-hidden="true">↗</span>
+              <span data-i18n="weather.wind10m">
+                Ветер
+              </span>
+              <span class="source-info" aria-hidden="true" data-i18n-title="weather.sourceInfo">i</span>
+            </label>
+            <span id="wind-source" class="monitor-status__visually-hidden" data-i18n="weather.sourceInfo"></span>
+
+            <div
+              id="wind-layer-note"
+              class="filter-note weather-wind-note"
+              aria-live="polite"
+              data-i18n="weather.windOff"
+            >
+              ECMWF IFS · поле ветра
+            </div>
+
+            <div class="current-size-control wind-size-control">
+              <div class="current-size-control__header">
+                <span data-i18n="weather.arrowSize">
+                  Размер стрелок
+                </span>
+                <output
+                  id="wind-arrow-size-value"
+                  class="current-size-control__value"
+                  for="wind-arrow-size"
+                >
+                  100%
+                </output>
+              </div>
+
+              <input
+                id="wind-arrow-size"
+                class="current-size-control__slider"
+                type="range"
+                min="60"
+                max="200"
+                step="10"
+                value="100"
+                data-i18n-aria-label="weather.arrowSizeAria"
+                aria-label="Размер стрелок ветра"
+              />
+            </div>
+
+            <div class="ocean-display-control wind-display-control">
+              <div
+                class="current-size-control__header"
+                data-i18n="weather.displayMode"
+              >
+                Отображение
+              </div>
+
+              <div
+                class="ocean-mode-grid wind-mode-grid"
+                role="radiogroup"
+                aria-label="Режим отображения ветра"
+                data-i18n-aria-label="weather.displayModeAria"
+              >
+                <label>
+                  <input
+                    type="radio"
+                    name="wind-display-mode"
+                    value="arrows"
+                    checked
+                  />
+                  <span data-i18n="weather.modeArrows">Стрелки</span>
+                </label>
+
+                <label>
+                  <input
+                    type="radio"
+                    name="wind-display-mode"
+                    value="particles"
+                  />
+                  <span data-i18n="weather.modeParticles">Частицы</span>
+                </label>
+
+                <label>
+                  <input
+                    type="radio"
+                    name="wind-display-mode"
+                    value="both"
+                  />
+                  <span data-i18n="weather.modeBoth">Стрелки + частицы</span>
+                </label>
+              </div>
+            </div>
+
+            <div
+              id="wind-particle-controls"
+              class="particle-controls wind-particle-controls"
+            >
+              <div class="current-size-control">
+                <div class="current-size-control__header">
+                  <span data-i18n="weather.particleCount">
+                    Количество частиц
+                  </span>
+                  <output
+                    id="wind-particle-count-value"
+                    class="current-size-control__value"
+                    for="wind-particle-count"
+                  >
+                    1200
+                  </output>
+                </div>
+
+                <input
+                  id="wind-particle-count"
+                  class="current-size-control__slider"
+                  type="range"
+                  min="400"
+                  max="2400"
+                  step="100"
+                  value="1200"
+                  data-i18n-aria-label="weather.particleCountAria"
+                  aria-label="Количество частиц ветра"
+                />
+              </div>
+
+              <div class="current-size-control">
+                <div class="current-size-control__header">
+                  <span data-i18n="weather.particleSpeed">
+                    Скорость анимации
+                  </span>
+                  <output
+                    id="wind-particle-speed-value"
+                    class="current-size-control__value"
+                    for="wind-particle-speed"
+                  >
+                    100%
+                  </output>
+                </div>
+
+                <input
+                  id="wind-particle-speed"
+                  class="current-size-control__slider"
+                  type="range"
+                  min="50"
+                  max="200"
+                  step="10"
+                  value="100"
+                  data-i18n-aria-label="weather.particleSpeedAria"
+                  aria-label="Скорость анимации ветра"
+                />
+              </div>
+
+              <div class="current-size-control">
+                <div class="current-size-control__header">
+                  <span data-i18n="weather.particleTrail">
+                    Длина следа
+                  </span>
+                  <output
+                    id="wind-particle-trail-value"
+                    class="current-size-control__value"
+                    for="wind-particle-trail"
+                  >
+                    55%
+                  </output>
+                </div>
+
+                <input
+                  id="wind-particle-trail"
+                  class="current-size-control__slider"
+                  type="range"
+                  min="10"
+                  max="100"
+                  step="10"
+                  value="55"
+                  data-i18n-aria-label="weather.particleTrailAria"
+                  aria-label="Длина следа частиц ветра"
+                />
+              </div>
+
+
+              <div class="current-size-control">
+                <div class="current-size-control__header">
+                  <span data-i18n="weather.particleSize">
+                    Размер частиц
+                  </span>
+                  <output
+                    id="wind-particle-size-value"
+                    class="current-size-control__value"
+                    for="wind-particle-size"
+                  >
+                    120%
+                  </output>
+                </div>
+
+                <input
+                  id="wind-particle-size"
+                  class="current-size-control__slider"
+                  type="range"
+                  min="60"
+                  max="200"
+                  step="10"
+                  value="120"
+                  data-i18n-aria-label="weather.particleSizeAria"
+                  aria-label="Размер частиц ветра"
+                />
+              </div>
+            </div>
+
+            <div
+              class="filter-note weather-wind-semantics"
+              data-i18n="weather.directionNote"
+            >
+              Стрелки показывают, куда движется воздух. Метеорологическое направление FROM показано по клику.
+            </div>
+
+          </div>
+
+
+
+          <div class="filter-section">
+            <div class="filter-section__title" data-i18n="satellite.layers">
+              СПУТНИК
+            </div>
+
+            <label class="filter-check filter-check--layer">
+              <input
+                id="satellite-layer-toggle"
+                type="checkbox"
+                checked
+              />
+              <span class="satellite-layer-symbol" aria-hidden="true">SAR</span>
+              <span data-i18n="satellite.candidates">
+                SAR-кандидаты
+              </span>
+            </label>
+
+            <label class="filter-check filter-check--layer">
+              <input id="satellite-older-toggle" type="checkbox" />
+              <span data-i18n="satellite.older">Показать пятна старше суток</span>
+            </label>
+
+            <label class="filter-check filter-check--layer">
+              <input id="gibs-layer-toggle" type="checkbox" />
+              <span data-i18n="gibs.toggle">Снимок дня (NASA, 250 м)</span>
+            </label>
+
+            <label class="filter-check filter-check--layer">
+              <input id="coast-pictures-toggle" type="checkbox" />
+              <span data-i18n="coastPictures.toggle">Свежие снимки побережья (Sentinel-2, 10 м)</span>
+            </label>
+
+            <div
+              id="satellite-layer-note"
+              class="filter-note satellite-layer-note"
+              aria-live="polite"
+              data-i18n="satellite.off"
+            >
+              Sentinel-1 · производные кандидаты
+            </div>
+
+            <div id="satellite-cerulean-auto" class="filter-note satellite-layer-note" aria-live="polite" data-live-only></div>
+
+            <button id="satellite-cerulean-refresh" class="drift-button drift-button--secondary" type="button" data-i18n="satellite.ceruleanRefresh" data-live-only>
+              Обновить из Cerulean
+            </button>
+            <div id="satellite-cerulean-status" class="filter-note satellite-layer-note" aria-live="polite"></div>
+          </div>
+
+          </details>
+
+          <!-- Shown only when the store holds at least one event (eventList.updateEventCount). -->
+          <div id="events-block" class="events-block" hidden>
+          <div class="filter-panel__head">
+            <div>
+              <div class="filter-kicker" data-i18n="filters.kicker">ФИЛЬТРЫ</div>
+              <div class="filter-title" data-i18n="filters.title">События</div>
+            </div>
+            <button
+              id="reset-filters"
+              class="filter-reset"
+              type="button"
+              data-i18n="filters.reset"
+            >
+              Сбросить
+            </button>
+          </div>
+
+          <div class="filter-section">
+            <div class="filter-section__title" data-i18n="filters.timeWindow">ПЕРИОД</div>
+            <div
+              class="time-segmented"
+              role="radiogroup"
+              aria-label="Период времени"
+              data-i18n-aria-label="filters.timeWindowAria"
+            >
+              <label>
+                <input type="radio" name="time-window" value="1" />
+                <span data-i18n="filters.24h">24 Ч</span>
+              </label>
+              <label>
+                <input type="radio" name="time-window" value="7" checked />
+                <span data-i18n="filters.7d">7 Д</span>
+              </label>
+              <label>
+                <input type="radio" name="time-window" value="30" />
+                <span data-i18n="filters.30d">30 Д</span>
+              </label>
+              <label>
+                <input type="radio" name="time-window" value="all" />
+                <span data-i18n="filters.all">ВСЁ</span>
+              </label>
+            </div>
+            <div class="filter-note" data-i18n="filters.timeNote">
+              Период определяется по времени инцидента, затем публикации и обнаружения.
+            </div>
+          </div>
+          </div>
+
+          <!-- Events whose place is only a region (the Black Sea) have no point: listed here, not drawn. -->
+          <details id="unlocated-events" class="panel-details unlocated-events" hidden>
+            <summary class="panel-details__summary unlocated-events__summary"></summary>
+            <div class="filter-note unlocated-events__note"></div>
+            <div class="unlocated-events__list"></div>
+          </details>
+        </aside>
+
+        <aside
+          id="event-panel"
+          class="event-panel"
+          aria-label="Информация о выбранном событии"
+          data-i18n-aria-label="eventPanel.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="panelTitle.event">Событие</span>
+            <button
+              id="close-event-panel"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть информацию о событии"
+              data-i18n-aria-label="panel.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="event-panel-content"></div>
+        </aside>
+
+        <aside
+          id="case-panel"
+          class="case-panel"
+          aria-label="Разбор прошедшего инцидента"
+          data-i18n-aria-label="case.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="case.open">Авария 2026</span>
+            <button
+              id="case-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть кейс"
+              data-i18n-aria-label="case.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="case-panel-content"></div>
+        </aside>
+
+        <aside
+          id="storm-panel"
+          class="storm-panel"
+          aria-label="Окна риска возврата нефти после шторма"
+          data-i18n-aria-label="storm.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="storm.open">Шторм</span>
+            <button
+              id="storm-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть окна риска"
+              data-i18n-aria-label="storm.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="storm-panel-content"></div>
+        </aside>
+
+        <aside
+          id="watch-panel"
+          class="storm-panel"
+          aria-label="Сценарии утечки в опасных точках"
+          data-i18n-aria-label="watch.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="watch.open">Если утечка</span>
+            <button
+              id="watch-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть сценарии"
+              data-i18n-aria-label="watch.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="watch-panel-content"></div>
+        </aside>
+
+        <aside
+          id="coast-panel"
+          class="storm-panel coast-panel"
+          aria-label="Состояние берега по местам"
+          data-i18n-aria-label="coast.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="coast.open">Берег</span>
+            <button
+              id="coast-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть состояние берега"
+              data-i18n-aria-label="coast.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="coast-panel-content"></div>
+        </aside>
+
+        <aside
+          id="place-panel"
+          class="storm-panel place-panel"
+          aria-label="Карточка места на берегу"
+          data-i18n-aria-label="place.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="place.title">Место на берегу</span>
+            <button
+              id="place-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть карточку места"
+              data-i18n-aria-label="place.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="place-panel-content"></div>
+        </aside>
+
+        <aside
+          id="samples-panel"
+          class="storm-panel samples-panel"
+          aria-label="Реестр анализов проб"
+          data-i18n-aria-label="samples.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="samples.open">Пробы</span>
+            <button
+              id="samples-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть реестр проб"
+              data-i18n-aria-label="samples.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="samples-panel-content"></div>
+        </aside>
+
+        <aside
+          id="pictures-panel"
+          class="storm-panel pictures-panel"
+          aria-label="Снимки со спутников"
+          data-i18n-aria-label="pictures.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="pictures.aria">Снимки со спутников</span>
+            <button
+              id="pictures-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть снимки"
+              data-i18n-aria-label="pictures.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="pictures-panel-content"></div>
+        </aside>
+
+        <aside
+          id="faq-panel"
+          class="storm-panel faq-panel"
+          aria-label="Вопросы и ответы"
+          data-i18n-aria-label="faq.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="faq.title">Вопросы и ответы</span>
+            <button
+              id="faq-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть вопросы и ответы"
+              data-i18n-aria-label="faq.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="faq-panel-content"></div>
+        </aside>
+
+        <aside
+          id="vessel-panel"
+          class="storm-panel vessel-panel"
+          aria-label="Поиск судна и его история"
+          data-i18n-aria-label="vesselHistory.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="vesselHistory.open">Судно</span>
+            <button
+              id="vessel-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть панель судна"
+              data-i18n-aria-label="vesselHistory.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="vessel-panel-content"></div>
+        </aside>
+
+        <aside
+          id="chronology-panel"
+          class="storm-panel chronology-panel"
+          aria-label="Хронология событий на Чёрном море"
+          data-i18n-aria-label="chronology.aria"
+          aria-hidden="true"
+        >
+          <div class="panel-titlebar">
+            <span class="panel-titlebar__title" data-i18n="chronology.open">Хронология</span>
+            <button
+              id="chronology-close"
+              class="event-panel__close"
+              type="button"
+              aria-label="Закрыть хронологию"
+              data-i18n-aria-label="chronology.close"
+            >
+              ×
+            </button>
+          </div>
+          <div id="chronology-panel-content"></div>
+        </aside>
+
+        <section
+          id="chronology-dock"
+          class="chronograph"
+          aria-label="Хронограф"
+          data-i18n-aria-label="chronology.dockAria"
+          hidden
+        ></section>
+
+        <!-- Redesign step 3 (13.10, the user's choice): the event categories as toggles along the bottom of the map, as the
+             colour-coded groups of the reference; the filters read these inputs (dom.js categoryInputs). Shown with the events. -->
+        <nav
+          id="category-toolbar"
+          class="category-toolbar"
+          aria-label="Категории событий"
+          data-i18n-aria-label="toolbar.aria"
+          hidden
+        >
+          <button id="category-all" class="category-toggle category-toggle--all" type="button" data-i18n="toolbar.all">Все</button>
+          <label class="category-toggle" style="--filter-color:#6f8cff" data-i18n-title="category.oil_spill">
+            <input type="checkbox" data-category="oil_spill" checked />
+            <span class="category-toggle__dot" aria-hidden="true"></span>
+            <span class="category-toggle__name" data-i18n="toolbar.cat.oil_spill">Разлив нефти</span>
+          </label>
+          <label class="category-toggle" style="--filter-color:#ff9a3c" data-i18n-title="category.oiled_wildlife">
+            <input type="checkbox" data-category="oiled_wildlife" checked />
+            <span class="category-toggle__dot" aria-hidden="true"></span>
+            <span class="category-toggle__name" data-i18n="toolbar.cat.oiled_wildlife">Поражённые животные и птицы</span>
+          </label>
+          <label class="category-toggle" style="--filter-color:#46d7c8" data-i18n-title="category.water_pollution">
+            <input type="checkbox" data-category="water_pollution" checked />
+            <span class="category-toggle__dot" aria-hidden="true"></span>
+            <span class="category-toggle__name" data-i18n="toolbar.cat.water_pollution">Загрязнение воды</span>
+          </label>
+          <label class="category-toggle" style="--filter-color:#8bd96b" data-i18n-title="category.algae_bloom">
+            <input type="checkbox" data-category="algae_bloom" checked />
+            <span class="category-toggle__dot" aria-hidden="true"></span>
+            <span class="category-toggle__name" data-i18n="toolbar.cat.algae_bloom">Цветение водорослей</span>
+          </label>
+          <label class="category-toggle" style="--filter-color:#bd7cff" data-i18n-title="category.marine_animal_death">
+            <input type="checkbox" data-category="marine_animal_death" checked />
+            <span class="category-toggle__dot" aria-hidden="true"></span>
+            <span class="category-toggle__name" data-i18n="toolbar.cat.marine_animal_death">Гибель животных</span>
+          </label>
+          <label class="category-toggle" style="--filter-color:#f2d95c" data-i18n-title="category.chemical_release">
+            <input type="checkbox" data-category="chemical_release" checked />
+            <span class="category-toggle__dot" aria-hidden="true"></span>
+            <span class="category-toggle__name" data-i18n="toolbar.cat.chemical_release">Химический выброс</span>
+          </label>
+          <label class="category-toggle" style="--filter-color:#84b6ff" data-i18n-title="category.storm_damage">
+            <input type="checkbox" data-category="storm_damage" checked />
+            <span class="category-toggle__dot" aria-hidden="true"></span>
+            <span class="category-toggle__name" data-i18n="toolbar.cat.storm_damage">Шторм</span>
+          </label>
+        </nav>
+
+        <section
+          class="map-legend"
+          hidden
+          aria-label="Легенда событий"
+          data-i18n-aria-label="legend.aria"
+        >
+          <div id="event-legend">
+            <div class="legend-head">
+              <div class="legend-title" data-i18n="legend.title">СОБЫТИЯ</div>
+              <div id="event-count" class="event-count" hidden>0 событий</div>
+            </div>
+          </div>
+          <!-- The radar candidates on the map; the lilac and grey rows appear when the older ones are switched on (slickLegend.js). -->
+          <div id="slick-legend" class="legend-group" hidden>
+            <div class="legend-title" data-i18n="slick.legend.title">ПЯТНА СО СПУТНИКОВОГО РАДАРА</div>
+            <div class="legend-row" data-slick-age="fresh">
+              <span class="legend-swatch legend-swatch--slick" style="--swatch:#ff1f6e"></span>
+              <span data-i18n="now.sea.age.fresh">24 ч</span>
+            </div>
+            <div class="legend-row" data-slick-age="week" hidden>
+              <span class="legend-swatch legend-swatch--slick" style="--swatch:#c77dff"></span>
+              <span data-i18n="now.sea.age.week">1-7 дн.</span>
+            </div>
+            <div class="legend-row" data-slick-age="old" hidden>
+              <span class="legend-swatch legend-swatch--slick" style="--swatch:#9a9a9a"></span>
+              <span data-i18n="now.sea.age.old">7-14 дн.</span>
+            </div>
+            <div class="legend-note" data-i18n="slick.legend.note">Кандидаты, не подтверждённые разливы</div>
+            <div class="legend-note" data-i18n="slick.legend.faint">Бледные: слабая уверенность нейросети или естественные выходы</div>
+            <div id="slick-legend-coverage" class="slick-legend__coverage" hidden></div>
+            <div id="slick-legend-review" class="slick-legend__coverage slick-legend__review" hidden></div>
+          </div>
+        
+      
+</section>
+
+      </main>
+    </div>
+
+  </body>
+</html>
